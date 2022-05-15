@@ -1,0 +1,15 @@
+biopython @ file:///Users/builder/ci_310/biopython_1642500906247/work
+Bottleneck @ file:///opt/concourse/worker/volumes/live/f7139d11-2eee-4f6e-48cd-73168dc9e900/volume/bottleneck_1648028909796/work
+certifi==2021.5.30
+click @ file:///opt/concourse/worker/volumes/live/2d66025a-4d79-47c4-43be-6220928b6c82/volume/click_1646056610594/work
+mkl-fft==1.3.1
+mkl-random @ file:///opt/concourse/worker/volumes/live/a9eca864-069c-4240-73c8-4e51b036a10d/volume/mkl_random_1639994047876/work
+mkl-service==2.4.0
+numexpr @ file:///Users/builder/ci_310/numexpr_1642534542370/work
+numpy @ file:///opt/concourse/worker/volumes/live/b4f261d1-be64-4b96-479d-46bad30378e0/volume/numpy_and_numpy_base_1650959341665/work
+packaging @ file:///tmp/build/80754af9/packaging_1637314298585/work
+pandas==1.4.2
+pyparsing @ file:///tmp/build/80754af9/pyparsing_1635766073266/work
+python-dateutil @ file:///tmp/build/80754af9/python-dateutil_1626374649649/work
+pytz==2021.3
+six @ file:///tmp/build/80754af9/six_1644875935023/work
