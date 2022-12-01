@@ -1,7 +1,13 @@
 import click
 import logging
-from vast.vast import run_vast
-from vast.utils import nasp_2_vast_format
+from pathlib import Path
+import sys
+
+path_root = Path(__file__)
+sys.path.append(str(path_root))
+
+from vast import run_vast
+from utils import nasp_2_vast_format
 import numpy as np
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
