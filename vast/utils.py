@@ -74,12 +74,12 @@ def draw_resolution_ascii_graph(resolution, score):
     groups, counts = np.unique(
         np.unique(resolution, return_counts=True)[1],
         return_counts=True)
-    counts = np.array(np.divide(counts, counts.min()), dtype=int)
+    norm_counts = np.array(np.divide(counts, counts.min()), dtype=int)
     chart = "\n" + "Resolution progress: {:.2f}%\n".format(score*100) + ("=" * 80) + "\n"
     chart += ("█" * int(np.floor(80*score))) + "\n"
     chart += ("=" * 80) + "\nGroup Size Distribution\n" 
-    for group, count in zip(groups, counts):
-        chart += ("█" * count) + " {0} group(s) of size {1}\n".format(count, group)
+    for group, norm_count, count in zip(groups, norm_counts, counts):
+        chart += ("█" * norm_count) + " {0} group(s) of size {1}\n".format(count, group)
     chart += ("=" * 80)
     return chart
     
