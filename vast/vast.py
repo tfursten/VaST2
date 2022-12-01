@@ -8,16 +8,27 @@ import sys
 path_root = Path(__file__)
 sys.path.append(str(path_root))
 
+try:
+    from vast.tree import get_snp_alignment
+    from vast.patterns import (
+        get_pattern, read_matrix_windows_and_get_patterns,
+        calculate_scores)
+    from vast.utils import (
+        load_matrix, load_required_snps, pull_required_snps_from_matrix,
+        get_final_snp_table,
+        draw_resolution_ascii_graph
+    )
+except ImportError:
+    from tree import get_snp_alignment
+    from patterns import (
+        get_pattern, read_matrix_windows_and_get_patterns,
+        calculate_scores)
+    from utils import (
+        load_matrix, load_required_snps, pull_required_snps_from_matrix,
+        get_final_snp_table,
+        draw_resolution_ascii_graph
+    )
 
-from tree import get_snp_alignment
-from patterns import (
-    get_pattern, read_matrix_windows_and_get_patterns,
-    calculate_scores)
-from utils import (
-    load_matrix, load_required_snps, pull_required_snps_from_matrix,
-    get_final_snp_table,
-    draw_resolution_ascii_graph
-)
 
 
 def optimization_loop(patterns, starting_pattern, delta_cutoff, max_targets):

@@ -2,13 +2,17 @@ import click
 import logging
 from pathlib import Path
 import sys
+import numpy as np
 
 path_root = Path(__file__)
 sys.path.append(str(path_root))
 
-from vast import run_vast
-from utils import nasp_2_vast_format
-import numpy as np
+try:
+    from vast.vast import run_vast
+    from vast.utils import nasp_2_vast_format
+except ImportError:
+    from vast import run_vast
+    from utils import nasp_2_vast_format
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 logger = logging.getLogger('vast')
@@ -59,7 +63,7 @@ def nasp_format(matrix, outfile):
 @click.option(
     "--offset", '-o',
     default=1, type=click.IntRange(min=1),
-    help="Set offset for window overlap. An offset of 1 will check all possible windows but this is less efficient with many SNPs and can result in overlapping target regions.")
+    help="Set offset for target windows. Allows spacing between adjacent target regions.")
 @click.option(
     "--required-snps", '-r',
     type=click.Path(exists=True, file_okay=True, dir_okay=False),
@@ -69,10 +73,10 @@ def targets(matrix, outfile, delta, max_targets, window, offset, required_snps):
     Run vast to find target regions.\n
     VaST uses a greedy optimization algorithm to find a minimal number of target regions
     that will provide the maximal resolution of genomes. VaST takes a SNP matrix (columns
-    are genomes and rows are SNP genotypes) and creates
-    target regions by passing a sliding window across the SNP positions. The collection
-    of SNPs in each window are used to create a pattern for that locus which identifies
-    which genomes have identical genotypes. At each iteration, a pattern is chosen that
+    are genomes and rows are SNP positions) and creates
+    target regions by passing a sliding window across the SNP positions. Each collection of 
+    SNPs in a window has a different pattern in which it differentiates between the genomes.
+    At each iteration, a pattern is chosen that
     provides the maximal increase in resolution of the genomes and it is added to the
     collection of targets.
     """
