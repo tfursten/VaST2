@@ -1,0 +1,47 @@
+{% set name = "vast2" %}
+
+
+package:
+  name: {{ name }}
+  version: {{ environ['VERSION'] }}
+
+source:
+  path: ../
+
+
+build:
+  script_env:
+     - VERSION
+     - CONDA_BLD_PATH
+  noarch: python
+  number: 1
+  script: python -m pip install --no-deps --ignore-installed .
+
+requirements:
+  host:
+    - python
+    - pip
+    - click
+  run:
+    - python
+    - biopython
+    - click
+    - numpy
+    - pandas
+
+test:
+  commands:
+    vast --help > /dev/null
+
+
+about:
+  home: https://github.com/tfursten/VaST2
+  license: MIT
+  license_file: LICENSE
+  license_family: MIT
+  summary: 'Variant site strain typer'
+  description: |
+    Finds a minimum set of target SNPs to differentiate between genomes of a set of strains.
+
+extra:
+  recipe_maintainers: tfursten

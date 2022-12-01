@@ -2,11 +2,11 @@ import pandas as pd
 import os
 import logging
 import numpy as np
-from tree import get_snp_alignment
-from patterns import (
+from vast.tree import get_snp_alignment
+from vast.patterns import (
     get_pattern, read_matrix_windows_and_get_patterns,
     calculate_scores)
-from utils import (
+from vast.utils import (
     load_matrix, load_required_snps, pull_required_snps_from_matrix,
     get_final_snp_table,
     draw_resolution_ascii_graph
@@ -34,8 +34,7 @@ def optimization_loop(patterns, starting_pattern, delta_cutoff, max_targets):
         iteration += 1
         logger.info("Running iteration {}".format(iteration))
         # Add const to current pattern
-
-        cur_pattern = np.add(result_pattern, const)
+        cur_pattern = np.multiply(result_pattern, const)
         # Add current pattern to all available patterns
         opt_pattern = np.add(cur_pattern, patterns)
         # Calculate entropy score for each pattern combined with current pattern

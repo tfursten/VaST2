@@ -1,7 +1,7 @@
 import click
 import logging
-from vast import run_vast
-from utils import nasp_2_vast_format
+from vast.vast import run_vast
+from vast.utils import nasp_2_vast_format
 import numpy as np
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
@@ -53,12 +53,12 @@ def nasp_format(matrix, outfile):
 @click.option(
     "--offset", '-o',
     default=1, type=click.IntRange(min=1),
-    help="Set offset for window overlap.")
+    help="Set offset for window overlap. An offset of 1 will check all possible windows but this is less efficient with many SNPs and can result in overlapping target regions.")
 @click.option(
     "--required-snps", '-r',
     type=click.Path(exists=True, file_okay=True, dir_okay=False),
     help="File with list of SNPs that are required in the solution. Two column tab separated file should contain the genome id and the SNP positions")
-def vast(matrix, outfile, delta, max_targets, window, offset, required_snps):
+def targets(matrix, outfile, delta, max_targets, window, offset, required_snps):
     """
     Run vast to find target regions.\n
     VaST uses a greedy optimization algorithm to find a minimal number of target regions
@@ -67,7 +67,7 @@ def vast(matrix, outfile, delta, max_targets, window, offset, required_snps):
     target regions by passing a sliding window across the SNP positions. The collection
     of SNPs in each window are used to create a pattern for that locus which identifies
     which genomes have identical genotypes. At each iteration, a pattern is chosen that
-    provides the maximal increase in resolution of the genomes and it is added to the 
+    provides the maximal increase in resolution of the genomes and it is added to the
     collection of targets.
     """
     logger.info("Running VaST")
@@ -80,7 +80,7 @@ def vast(matrix, outfile, delta, max_targets, window, offset, required_snps):
 # Add a function to find a similar pattern as a given range (if we can't design primers for a certain target)
 # Add viz
 # Make an easy tool to convert genome ranges to a list of required positions.
-#              
+# 
 
 
 
