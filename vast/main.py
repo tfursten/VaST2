@@ -27,7 +27,7 @@ def cli(debug):
         logger.setLevel("INFO")
 
 
-@cli.command()
+@cli.command(context_settings=dict(show_default=True))
 @click.argument(
     'MATRIX',
     type=click.Path(exists=True, file_okay=True, dir_okay=True, allow_dash=True))
@@ -39,7 +39,7 @@ def nasp_format(matrix, outfile):
     """Convert a Nasp bestsnp tsv file into VaST format."""
     nasp_2_vast_format(matrix, outfile)
 
-@cli.command()
+@cli.command(context_settings=dict(show_default=True))
 @click.argument(
     'MATRIX',
     type=click.Path(exists=True, file_okay=True, dir_okay=True, allow_dash=True))
@@ -58,7 +58,7 @@ def nasp_format(matrix, outfile):
 )
 @click.option(
     "--window", '-w',
-    default=50, type=click.IntRange(min=0),
+    default=50, type=click.IntRange(min=1),
     help="Size of scanning window for targets.")
 @click.option(
     "--offset", '-o',
