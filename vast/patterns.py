@@ -33,7 +33,7 @@ def windows(position_list, window_size, offset):
             patterns.append(None)
         else:
             pattern_id += 1
-            start = pos
+            start = position_list[pos]
             patterns.append(pattern_id)
             last_pos = position_list[pos]
     return patterns
