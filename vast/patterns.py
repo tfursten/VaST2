@@ -19,39 +19,31 @@ def get_pattern(snp_matrix):
 
 
 
-def read_matrix_windows_and_get_patterns(matrix, offset, window, start=0):
+def windows(position_list, window_size):
+    start = position_list[0]
+    pattern_id = 0
+    patterns = []
+    for pos in position_list:
+        if (pos - start) < window_size:
+            patterns.append(pattern_id)
+        else:
+            pattern_id += 1
+            start = pos
+            patterns.append(pattern_id)
+    return patterns
+
+
+
+def read_matrix_windows_and_get_patterns(matrix, offset, window):
     patterns = []
     snps = []
-    current_genome = "NONE"
-    current_pos = 0
-    current_pattern = []
-    current_snps = []
-    for i in range(start, matrix.shape[0]):
-        row = matrix.iloc[i]
-        genome, pos = row.name
-        if current_genome == "NONE":
-            current_genome = genome
-            current_pos = pos
-        if (pos - current_pos < window) and (current_genome == genome):
-            current_pattern.append(row.values)
-            current_snps.append(row.name)
-            current_pos = pos
-        else:
-            # add previous patterns
-            if len(current_pattern):
-                patterns.append(get_pattern(current_pattern))
-                snps.append(current_snps)
-                current_pattern = []
-                current_snps = []
-            # skip if within the offset from previous pattern
-            if pos - current_pos < offset:
-                continue
-            else:
-                # Add pattern and update positions
-                current_pattern = [row.values]
-                current_snps = [row.name]
-                current_genome = genome
-                current_pos = pos
+    for genome, d in matrix.groupby(level=0):
+        d = d.droplevel(0)
+        d['window'] = windows(d.index.values, window)
+        for _, dd in d.groupby('window'):
+            snps.append([(genome, p) for p in dd.index])
+            patterns.append(get_pattern(dd.drop('window', axis=1).values))
+
     return np.stack(patterns), snps
 
 
