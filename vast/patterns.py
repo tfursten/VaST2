@@ -19,17 +19,23 @@ def get_pattern(snp_matrix):
 
 
 
-def windows(position_list, window_size):
+def windows(position_list, window_size, offset):
     start = position_list[0]
     pattern_id = 0
     patterns = []
-    for pos in position_list:
-        if (pos - start) < window_size:
+    last_pos = 0
+    for pos in range(len(position_list)):
+        if (position_list[pos] - start) < window_size:
             patterns.append(pattern_id)
+            last_pos = position_list[pos]
+        # position within offset
+        elif (position_list[pos] - last_pos) < offset:
+            patterns.append(None)
         else:
             pattern_id += 1
             start = pos
             patterns.append(pattern_id)
+            last_pos = position_list[pos]
     return patterns
 
 
@@ -39,7 +45,9 @@ def read_matrix_windows_and_get_patterns(matrix, offset, window):
     snps = []
     for genome, d in matrix.groupby(level=0):
         d = d.droplevel(0)
-        d['window'] = windows(d.index.values, window)
+        d['window'] = windows(d.index.values, window, offset)
+        # Drop any positions that are not valid (i.e. in offset regions)
+        d = d[~(d['window'].isna())]
         for _, dd in d.groupby('window'):
             snps.append([(genome, p) for p in dd.index])
             patterns.append(get_pattern(dd.drop('window', axis=1).values))
