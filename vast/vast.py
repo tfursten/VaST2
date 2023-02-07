@@ -19,7 +19,9 @@ try:
     from vast.utils import (
         matrix_setup,
         get_final_snp_table,
-        draw_resolution_ascii_graph, process_metadata
+        get_resolution,
+        draw_resolution_ascii_graph,
+        process_metadata
     )
 except ImportError:
     from tree import (
@@ -32,7 +34,9 @@ except ImportError:
     from utils import (
         matrix_setup,
         get_final_snp_table,
-        draw_resolution_ascii_graph, process_metadata
+        get_resolution,
+        draw_resolution_ascii_graph,
+        process_metadata
     )
 
 
@@ -106,10 +110,12 @@ def optimization_loop(
 def run_vast(
     matrix, outfile, delta_cutoff, max_targets,
     window, offset, required_snps, exclude_snps,
-    drop_duplicates, metadata, tree_outfile, figure_outfile):
+    drop_duplicates, metadata, tree_outfile,
+    figure_outfile, resolution_outfile):
     logger = logging.getLogger('vast')
     logger.info("Loading SNP matrix: {}".format(os.path.abspath(matrix)))
     snp_matrix = matrix_setup(matrix, exclude_snps, drop_duplicates)
+    genomes = snp_matrix.columns.values
     logger.info("Found {0} genomes and {1} snps.".format(
         snp_matrix.shape[1], snp_matrix.shape[0]))
     starting_pattern = get_starting_pattern(snp_matrix, required_snps)
@@ -137,14 +143,22 @@ def run_vast(
 
     snp_results.to_csv(outfile, index=False, sep="\t")
     logger.info("SNP targets have been written to {}".format(outfile))
-    
+    # Get resolution combining starting pattern and selected target patterns
+    resolution = get_resolution(
+        np.vstack((starting_pattern['pattern'], results['resolution'])), genomes)
+    if resolution_outfile:
+        logger.info("Writing resolution table to file {}".format(resolution_outfile))
+        resolution.to_csv(resolution_outfile, sep="\t")
     if tree_outfile:
         tree = vast_target_tree(snp_results, metadata)
         logger.info("Writing tree to file {}".format(tree_outfile))
         Phylo.write(tree, tree_outfile, "newick")
         logger.info(Phylo.draw_ascii(tree))
     if figure_outfile:
-        draw_parallel_categories(results['resolution'], figure_outfile, metadata)
+        logger.info("Writing resolution file to file {}".format(figure_outfile))
+        draw_parallel_categories(resolution, figure_outfile, metadata)
+    
+
 
 
     

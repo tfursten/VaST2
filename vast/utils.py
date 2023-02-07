@@ -62,22 +62,22 @@ def filter_exluded_snps(snps, exclude_snps):
 
 
 def get_final_snp_table(snps, selected_patterns, matrix, required_snps):
-    if required_snps:
+    if required_snps is not None:
         required_snps['Target_ID'] = "REQ"
         required_snps = required_snps.reset_index().set_index(
-            ['Genome', 'Pos', 'Target_ID']).reset_index()
+            ['Genome', 'Pos', 'Target_ID'])
     snp_dfs = []
-    for i in selected_patterns:
+    for n, i in enumerate(selected_patterns):
         selected_snps = []
         for snp in snps[i]:
             selected_snps.append(list(snp))
         d = pull_required_snps_from_matrix(
                 matrix, pd.DataFrame(selected_snps))
-        cols = d.columns.values
-        d['Target_ID'] = i
+        d['Target_ID'] = n
+        d = d.reset_index().set_index(['Genome', 'Pos', 'Target_ID'])
         snp_dfs.append(d)
-    snp_results = pd.concat(snp_dfs + [required_snps])
-    return snp_results[['Target_ID'] + list(cols)]
+    snp_results = pd.concat([required_snps] + snp_dfs)
+    return snp_results
 
 def draw_resolution_ascii_graph(resolution, score):
     # get counts of group sizes
@@ -97,6 +97,13 @@ def draw_resolution_ascii_graph(resolution, score):
         chart += ("█" * norm_count) + " {0} group(s) of size {1}\n".format(count, group)
     chart += ("=" * 80)
     return chart
+
+
+def get_resolution(patterns, genomes):
+    targets = ['Start'] + ["Target {}".format(i) for i in range(1, len(patterns))]
+    return pd.DataFrame(
+        patterns.T, index=genomes,
+        columns = targets)
 
 
 def process_metadata(matrix, metadata=None):

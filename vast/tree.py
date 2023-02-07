@@ -145,29 +145,28 @@ def vast_target_tree(target_results, metadata=None):
 #     fig.write_image(outfile)
 
 
-def draw_parallel_categories(patterns, outfile, metadata):
-    targets = ["Target {}".format(i) for i in range(1, len(patterns) + 1)]
 
-    df = pd.DataFrame(
-        patterns.T, index=metadata['values'].index.values,
-        columns = targets)
+
+
+def draw_parallel_categories(resolution, outfile, metadata):
+    targets = list(resolution.columns.values)
+
     last_group = {}
-    for g, d in df.groupby(targets[-1]):
+    for g, d in resolution.groupby(targets[-1]):
         last_group[g] = "<br>".join(d.index)
 
-    df[targets[-1]] = df[targets[-1]].apply(lambda x: last_group[x])
-    df['Categories'] = [metadata['values'].loc[i] for i in df.index]
-    df['Numerical'] = np.unique(df['Categories'], return_inverse=True)[-1]
-    df = df.sort_values( ['Numerical'] + targets[::-1])
+    resolution[targets[-1]] = resolution[targets[-1]].apply(lambda x: last_group[x])
+    resolution['Categories'] = [metadata['values'].loc[i] for i in resolution.index]
+    resolution = resolution.sort_values( ['Categories'] + targets[::-1])
 
     width = len(targets) * 150
-    height = df.shape[0] * 35
-    fig = px.parallel_categories(df, dimensions=targets, color="Numerical", 
+    height = resolution.shape[0] * 35
+    fig = px.parallel_categories(resolution, dimensions=targets, color="Categories", 
                     color_continuous_scale=px.colors.sequential.Plasma,
                     width=width, height=height
                     )
     # Make margins fit labels
-    max_label_len = max([len(i) for i in df.index])
+    max_label_len = max([len(i) for i in resolution.index])
 
     fig.update_layout(coloraxis_showscale=False, margin=dict(l=20, r=max_label_len * 6, t=20, b=20))
 

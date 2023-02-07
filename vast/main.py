@@ -91,10 +91,15 @@ def nasp_format(matrix, outfile):
     type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True),
     help="Path to save Sankey diagram of resolution for chosen targets."
 )
+@click.option(
+    "--resolution", '-z', default=None,
+    type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True),
+    help="Path to save the resolution pattern for each target (.tsv)."
+)
 def targets(
     matrix, outfile, delta, max_targets,
     window, offset, required_snps, exclude_snps,
-    drop_duplicates, metadata, tree, figure):
+    drop_duplicates, metadata, tree, figure, resolution):
     """
     Run vast to find target regions to maximize strain resolution.\n
     VaST uses a greedy optimization algorithm to find a minimal number of target regions
@@ -110,7 +115,7 @@ def targets(
     run_vast(
         matrix, outfile, delta, max_targets,
         window, offset, required_snps, exclude_snps,
-        drop_duplicates, metadata, tree, figure)
+        drop_duplicates, metadata, tree, figure, resolution)
     
 
 
