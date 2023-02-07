@@ -13,3 +13,6 @@ pyparsing @ file:///tmp/build/80754af9/pyparsing_1635766073266/work
 python-dateutil @ file:///tmp/build/80754af9/python-dateutil_1626374649649/work
 pytz==2021.3
 six @ file:///tmp/build/80754af9/six_1644875935023/work
+python-kaleido
+seaborn
+plotly

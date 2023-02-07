@@ -28,6 +28,9 @@ requirements:
     - click
     - numpy >=1.13.3
     - pandas
+    - python-kaleido
+    - plotly-orca
+    - plotly
 
 test:
   commands:
