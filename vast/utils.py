@@ -1,3 +1,4 @@
+import os
 import logging
 import pandas as pd
 import numpy as np
@@ -20,32 +21,20 @@ def nasp_2_vast_format(matrix, outfile):
                 else:
                     line = split(line, "\t")
                     line = line[:last_row]
-                    line = list(map(lambda x: x.upper(), line))
-                    if len(set(line[1:]) - set(["A", "C", "T", "G"])):
-                        raise ValueError("Encountered Invalid Base: Only A,C,T,G are valid in matrix.")
                     genome, position = split(line[0], "::")
                     line = [genome, position] + line[1:]
                     line = "\t".join(line)
                     outfile.write(line + "\n")
 
 
-def replace_bases_with_numbers(matrix):
-    matrix = matrix.apply(lambda x: x.str.upper())
-    return matrix.replace({"A": 0, "C": 1, "G": 2, "T": 3})
-
-
-def replace_numbers_with_bases(matrix):
-    return matrix.replace({0: "A", 1: "C", 2:"G", 3:"T"})
-
-
 def load_matrix(matrix):
     """
     Read in matrix and make sure to sort positions so we can calculate
-    sliding windows. Replaces bases with numbers.
+    sliding windows.
     """
-    df = pd.read_csv(matrix, sep="\t", index_col=[0, 1]).sort_index()
+    df = pd.read_csv(matrix, sep="\t", index_col=[0, 1], comment="#").sort_index()
     df.index.names = ['Genome', 'Pos']
-    return replace_bases_with_numbers(df)
+    return df
 
 
 def load_required_snps(required_snps):
@@ -55,19 +44,40 @@ def pull_required_snps_from_matrix(matrix, required_snps):
     idx = [(row[0], row[1]) for _, row in required_snps.iterrows()]
     return matrix.loc[idx]
 
-def get_final_snp_table(snps, selected_patterns, matrix):
-    snp_df = pd.DataFrame([])
+def filter_exluded_snps(snps, exclude_snps):
+    """
+    Remove exclude snps from snp matrix.
+    """
+    exclude_snps_df = pd.read_csv(
+        exclude_snps, sep='\t', index_col=[0,1], header=None, comment="#")
+    pre_filter = snps.shape[0]
+    snps = snps.loc[~snps.index.isin(exclude_snps.index)]
+    post_filter = snps.shape[0]
+    n_exclude = exclude_snps_df.shape[0]
+    logging.info(
+        "Filtered {0} SNPs out of {1} excluded SNPs".format(
+        pre_filter - post_filter, n_exclude
+    ))
+    return snps
+
+
+def get_final_snp_table(snps, selected_patterns, matrix, required_snps):
+    if required_snps:
+        required_snps['Target_ID'] = "REQ"
+        required_snps = required_snps.reset_index().set_index(
+            ['Genome', 'Pos', 'Target_ID']).reset_index()
+    snp_dfs = []
     for i in selected_patterns:
-        required_snps = []
+        selected_snps = []
         for snp in snps[i]:
-            required_snps.append(list(snp))
+            selected_snps.append(list(snp))
         d = pull_required_snps_from_matrix(
-                matrix, pd.DataFrame(required_snps))
+                matrix, pd.DataFrame(selected_snps))
         cols = d.columns.values
         d['Target_ID'] = i
-        snp_df = pd.concat([snp_df, d])
-
-    return replace_numbers_with_bases(snp_df[['Target_ID'] + list(cols)])
+        snp_dfs.append(d)
+    snp_results = pd.concat(snp_dfs + [required_snps])
+    return snp_results[['Target_ID'] + list(cols)]
 
 def draw_resolution_ascii_graph(resolution, score):
     # get counts of group sizes
@@ -82,6 +92,49 @@ def draw_resolution_ascii_graph(resolution, score):
         chart += ("█" * norm_count) + " {0} group(s) of size {1}\n".format(count, group)
     chart += ("=" * 80)
     return chart
-    
 
 
+def process_metadata(matrix, metadata=None):
+    """
+    Get metadata categores for genomes.
+    If no metadata is None, return an array with unique ids for each genome
+    Otherwise, read metadata file and return classification ids for each
+    genome in the same order as they are in the matrix.
+    """
+    genomes = matrix.columns
+    if metadata is None:
+        # If no metadata is provided treat each genome as a unique classification
+        return {
+            'values': pd.Series(np.arange(len(genomes)), index=genomes),
+            'names': pd.Series(genomes)
+        }
+    metadata = pd.read_csv(metadata, sep='\t', index_col=0, header=None, comment="#")
+    # ensure that the genomes in metadata match SNP matrix
+    missing = np.setdiff1d(genomes, metadata.index)
+    if len(missing):
+        err = "Metadata missing for genomes: {}".format(", ".join(missing))
+        raise(IndexError(err))
+    # put metadata in same order as snp matrix
+    metadata = metadata.loc[genomes]
+    # Return unique ids for each category
+    metadata_ids = np.unique(metadata[1], return_inverse=True)
+    return {
+        'values': pd.Series(metadata_ids[1], index=genomes),
+        'names': pd.Series(metadata_ids[0])
+    }
+
+
+def get_metadata_from_genome(metadata, genome):
+    return metadata['names'].loc[metadata['values'].loc[genome]]
+
+def matrix_setup(matrix, exclude_snps, drop_duplicates):
+    """
+    Load SNP matrix from tsv file, and filter excluded SNPs
+    """    
+    snp_matrix = load_matrix(matrix)
+    # drop duplicate genomes based on available SNPs
+    if drop_duplicates:
+        snp_matrix = snp_matrix.T.drop_duplicates().T
+    if exclude_snps:
+        snp_matrix = filter_exluded_snps(snp_matrix, exclude_snps)
+    return snp_matrix
