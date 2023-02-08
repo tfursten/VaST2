@@ -14,6 +14,7 @@ try:
         draw_parallel_categories)
     from vast.patterns import (
         get_patterns,
+        get_pattern,
         get_starting_pattern,
         calculate_gini)
     from vast.utils import (
@@ -29,6 +30,7 @@ except ImportError:
         draw_parallel_categories)
     from patterns import (
         get_patterns,
+        get_pattern,
         get_starting_pattern,
         calculate_gini)
     from utils import (
@@ -150,7 +152,10 @@ def run_vast(
         logger.info("Writing resolution table to file {}".format(resolution_outfile))
         resolution.to_csv(resolution_outfile, sep="\t")
     if tree_outfile:
-        tree = vast_target_tree(snp_results, metadata)
+        tree = vast_target_tree(
+            snp_results.set_index(
+                ['Genome', 'Pos', 'Target_ID']),
+            metadata)
         logger.info("Writing tree to file {}".format(tree_outfile))
         Phylo.write(tree, tree_outfile, "newick")
         logger.info(Phylo.draw_ascii(tree))
@@ -164,4 +169,65 @@ def run_vast(
     
     
 
+def run_vast_resolution(vast_targets, metadata, resolution_outfile, figure_outfile):
+    logger = logging.getLogger('vast')
+    logger.info("Loading VaST Target Matrix: {}".format(os.path.abspath(vast_targets)))
+    target_df = pd.read_csv(
+        vast_targets, sep="\t", comment="#",
+        index_col=['Genome', 'Pos', 'Target_ID'], converters={'Target_ID': lambda x: -1 if x=="REQ" else x})
+    logger.info("Found {0} genomes, {1} targets, and {2} snps.".format(
+        target_df.shape[1], target_df.groupby(level=2).ngroups , target_df.shape[0]))    
+    try:
+        metadata = process_metadata(target_df, metadata)
+    except IndexError as err:
+        logger.error(err)
+
+    const = 10 ** len(str(target_df.shape[1]))
+    patterns = []
+    current_pattern = None
+    for n, d in target_df.groupby(level=2):
+        if current_pattern is None:
+            if n != -1:
+                # if there are no required snps, start with
+                # no resolution.
+                patterns.append(np.zeros(target_df.shape[1], dtype=int))
+            current_pattern = get_pattern(d.values)
+            patterns.append(np.array(current_pattern))
+        else:
+            prev_pattern = np.multiply(current_pattern, const)
+            # Add current pattern to all available patterns
+            dd = get_pattern(d.values)
+            next_pattern = np.unique(
+                np.add(prev_pattern, get_pattern(d.values)),
+                return_inverse=True)[1]
+            current_pattern = next_pattern
+            patterns.append(current_pattern)
+    patterns = np.vstack(patterns)
+    resolution = get_resolution(patterns, list(target_df.columns.values))
+    if resolution_outfile:
+        logger.info("Writing resolution table to file {}".format(resolution_outfile))
+        resolution.to_csv(resolution_outfile, sep="\t")
+
+    if figure_outfile:
+        logger.info("Writing resolution file to file {}".format(figure_outfile))
+        draw_parallel_categories(resolution, figure_outfile, metadata)
     
+
+def run_vast_tree(vast_targets, metadata, tree_outfile):
+    logger = logging.getLogger('vast')
+    logger.info("Loading VaST Target Matrix: {}".format(os.path.abspath(vast_targets)))
+    target_df = pd.read_csv(
+        vast_targets, sep="\t", comment="#",
+        index_col=['Genome', 'Pos', 'Target_ID'], converters={'Target_ID': lambda x: -1 if x=="REQ" else x})
+    logger.info("Found {0} genomes, {1} targets, and {2} snps.".format(
+        target_df.shape[1], target_df.groupby(level=2).ngroups , target_df.shape[0]))    
+    try:
+        metadata = process_metadata(target_df, metadata)
+    except IndexError as err:
+        logger.error(err)
+
+    if tree_outfile:
+        tree = vast_target_tree(target_df, metadata)
+        logger.info("Writing tree to file {}".format(tree_outfile))
+        Phylo.write(tree, tree_outfile, "newick")
+    logger.info(Phylo.draw_ascii(tree))

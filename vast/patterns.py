@@ -54,7 +54,7 @@ def read_matrix_windows_and_get_patterns(matrix, offset, window):
     patterns = []
     snps = []
     for genome, d in matrix.groupby(level=0):
-        d = d.droplevel(0)
+        d = d.droplevel([l for l in d.index.names if l != 'Pos'])
         d['window'] = windows(d.index.values, window, offset)
         # Drop any positions that are not valid (i.e. in offset regions)
         d = d[~(d['window'].isna())]

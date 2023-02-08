@@ -49,18 +49,14 @@ def get_tree(distance_matrix):
 
 
 def vast_target_tree(target_results, metadata=None):
-    cols = [c for c in target_results.columns.values
-                if c not in ['Genome', 'Pos', 'Target_ID']]
+    cols = [c for c in target_results.columns.values]
     if metadata is not None:
         # get metadata labels
         metalabels = [get_metadata_from_genome(metadata, c) for c in cols]
         # only include them if they are not the same as the column labels (i.e for full resolution)
         cols = ["{0} {1}".format(c, m) if c != m else c for c, m in zip(cols, metalabels) ]
-
     snps = pd.DataFrame(
-        get_patterns(target_results.drop(
-        'Target_ID', axis=1).set_index(
-            ['Genome', 'Pos']).sort_index(), 1, 1)['patterns'],
+        get_patterns(target_results.sort_index(), 1, 1)['patterns'],
             columns=cols, dtype=str)
     return get_tree(get_distance_matrix(get_snp_alignment(snps)))
 
@@ -148,7 +144,7 @@ def vast_target_tree(target_results, metadata=None):
 
 
 
-def draw_parallel_categories(resolution, outfile, metadata):
+def draw_parallel_categories(resolution, outfile, metadata, show=True):
     targets = list(resolution.columns.values)
 
     last_group = {}
@@ -171,4 +167,5 @@ def draw_parallel_categories(resolution, outfile, metadata):
     fig.update_layout(coloraxis_showscale=False, margin=dict(l=20, r=max_label_len * 6, t=20, b=20))
 
     fig.write_image(outfile, engine="orca")
-    fig.show()
+    if show:
+        fig.show()

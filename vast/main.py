@@ -8,10 +8,10 @@ path_root = Path(__file__)
 sys.path.append(str(path_root))
 
 try:
-    from vast.vast import run_vast
+    from vast.vast import run_vast, run_vast_resolution, run_vast_tree
     from vast.utils import nasp_2_vast_format
 except ImportError:
-    from vast import run_vast
+    from vast import run_vast, run_vast_resolution, run_vast_tree
     from utils import nasp_2_vast_format
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
@@ -116,20 +116,61 @@ def targets(
         matrix, outfile, delta, max_targets,
         window, offset, required_snps, exclude_snps,
         drop_duplicates, metadata, tree, figure, resolution)
-    
 
 
+@cli.command(context_settings=dict(show_default=True))
+@click.argument(
+    'VAST_TARGET_MATRIX', 
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, allow_dash=False))
+@click.option(
+    '--metadata', '-c', 
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, allow_dash=False),
+    help="File providing classification labels for each genome. Sankey diagram will be colored using these categories."
+)
+@click.option(
+    "--figure", '-f', default=None,
+    type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True),
+    help="Path to save Sankey diagram of resolution for chosen targets."
+)
+@click.option(
+    "--resolution", '-z', default=None,
+    type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True),
+    help="Path to save the resolution pattern for each target (.tsv)."
+)
+def resolution(vast_target_matrix, metadata, resolution, figure):
+    """
+    Calculate resolution from VaST target matrix. Output a Sankey
+    diagram showing how each target splits up the collection of genomes
+    and/or a table showing the same differentiation pattern. 
+    Input: A VaST target matrix with tab separated columns for 
+    "Genome", "Pos", "Target_ID" followed
+    by genome names. 
+    """
+    run_vast_resolution(vast_target_matrix, metadata, resolution, figure)
 
 
-# Add a function to find a similar pattern as a given range (if we can't design primers for a certain target)
-# Add viz
-# Make an easy tool to convert genome ranges to a list of required positions.
-# 
-
-
-
-                
-
+@cli.command(context_settings=dict(show_default=True))
+@click.argument(
+    'VAST_TARGET_MATRIX', 
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, allow_dash=False))
+@click.option(
+    '--metadata', '-c', 
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, allow_dash=False),
+    help="File providing classification labels for each genome. Categories will be include in tree labels."
+)
+@click.option(
+    "--tree", '-t', default=None,
+    type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True),
+    help="Write neighbor-joining tree using chosen targets to newick formated file."
+)
+def tree(vast_target_matrix, metadata, tree):              
+    """
+    Draw neighbor joining tree from VaST target matrix.  
+    Input: A VaST target matrix with tab separated columns for 
+    "Genome", "Pos", "Target_ID" followed
+    by genome names. 
+    """
+    run_vast_tree(vast_target_matrix, metadata, tree)
 
 
 
