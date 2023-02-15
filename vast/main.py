@@ -9,10 +9,10 @@ sys.path.append(str(path_root))
 
 try:
     from vast.vast import run_vast, run_vast_resolution, run_vast_tree
-    from vast.utils import nasp_2_vast_format
+    from vast.utils import nasp_2_vast_format, run_get_snps_in_ranges
 except ImportError:
     from vast import run_vast, run_vast_resolution, run_vast_tree
-    from utils import nasp_2_vast_format
+    from utils import nasp_2_vast_format, run_get_snps_in_ranges
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 logger = logging.getLogger('vast')
@@ -38,6 +38,8 @@ def cli(debug):
 def nasp_format(matrix, outfile):
     """Convert a Nasp bestsnp tsv file into VaST format."""
     nasp_2_vast_format(matrix, outfile)
+
+# TODO: allow other input format conversions like fasta, etc
 
 @cli.command(context_settings=dict(show_default=True))
 @click.argument(
@@ -139,9 +141,10 @@ def targets(
 )
 def resolution(vast_target_matrix, metadata, resolution, figure):
     """
-    Calculate resolution from VaST target matrix. Output a Sankey
-    diagram showing how each target splits up the collection of genomes
-    and/or a table showing the same differentiation pattern. 
+    Calculate resolution from VaST target matrix (output from running vast targets).
+    Output a Sankey diagram showing how each target splits up the collection of genomes
+    and/or a table showing the same differentiation pattern (Diagram is not recommended
+    when the number of genomes is high). 
     Input: A VaST target matrix with tab separated columns for 
     "Genome", "Pos", "Target_ID" followed
     by genome names. 
@@ -171,9 +174,28 @@ def tree(vast_target_matrix, metadata, tree):
     by genome names. 
     """
     run_vast_tree(vast_target_matrix, metadata, tree)
+#TODO: change tree drawing to use grapetree
 
 
-
+@cli.command(context_settings=dict(show_default=True))
+@click.argument(
+    'SNP_MATRIX', 
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, allow_dash=False))
+@click.argument(
+    'RANGES',
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, allow_dash=False))
+@click.argument(
+    'OUTFILE',
+    type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True))
+def get_snps_in_ranges(snp_matrix, ranges, outfile):
+    """
+    Given a RANGES tab separated file (with columns "Genome" for the reference
+    genome name, "Start", and "End" indicating the start and end of the range),
+    return a list of SNP positions from the provided SNP_MATRIX that fall within
+    each range (inclusive). The output file is provided in a format that can be passed to the
+    vast targets function as required or excluded snps.
+    """
+    run_get_snps_in_ranges(snp_matrix, ranges, outfile)
 
 if __name__ == '__main__':
     cli()

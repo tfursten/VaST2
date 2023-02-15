@@ -42,7 +42,10 @@ def load_required_snps(required_snps):
 
 def pull_required_snps_from_matrix(matrix, required_snps):
     idx = [(row[0], row[1]) for _, row in required_snps.iterrows()]
-    return matrix.loc[idx]
+    return {
+        'required_snps': matrix.loc[idx],
+        'snp_matrix_without_required': matrix.drop(idx)
+        }
 
 def filter_exluded_snps(snps, exclude_snps):
     """
@@ -72,7 +75,7 @@ def get_final_snp_table(snps, selected_patterns, matrix, required_snps):
         for snp in snps[i]:
             selected_snps.append(list(snp))
         d = pull_required_snps_from_matrix(
-                matrix, pd.DataFrame(selected_snps))
+                matrix, pd.DataFrame(selected_snps)).get('required_snps')
         d['Target_ID'] = n
         d = d.reset_index().set_index(['Genome', 'Pos', 'Target_ID'])
         snp_dfs.append(d)
@@ -145,8 +148,25 @@ def matrix_setup(matrix, exclude_snps, drop_duplicates):
     """    
     snp_matrix = load_matrix(matrix)
     # drop duplicate genomes based on available SNPs
+    # TODO: re-add duplicates to final matrix
     if drop_duplicates:
         snp_matrix = snp_matrix.T.drop_duplicates().T
     if exclude_snps:
         snp_matrix = filter_exluded_snps(snp_matrix, exclude_snps)
     return snp_matrix
+
+
+def run_get_snps_in_ranges(snp_matrix, ranges, outfile):
+    ranges = pd.read_csv(ranges, sep="\t")
+    ranges.columns = ['Genome', 'Start', 'End']
+    snp_matrix = pd.read_csv(snp_matrix, sep="\t", usecols=[0,1])
+    snps_in_range = []
+    for n, row in ranges.iterrows():
+        snps_in_range.append(snp_matrix[
+            (snp_matrix['Genome'] == row['Genome']) & 
+            (snp_matrix['Pos'] >= row['Start']) &
+            (snp_matrix['Pos'] <= row['End'])])
+    snps_in_range = pd.concat(snps_in_range)
+    snps_in_range.to_csv(outfile, sep="\t", header=False, index=False)
+        
+

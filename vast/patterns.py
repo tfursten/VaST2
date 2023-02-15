@@ -75,18 +75,20 @@ def get_starting_pattern(matrix, required_snps):
     if required_snps:
         # Pull required snps from matrix and set current pattern as starting pattern
         logger.info("Loading required SNPS")
-        required_snps =  pull_required_snps_from_matrix(
+        required_snps_result =  pull_required_snps_from_matrix(
             matrix,
             load_required_snps(required_snps))
-        logger.info("Found {} required SNPs".format(required_snps.shape[0]))
+        logger.info("Found {} required SNPs".format(required_snps_result.get('required_snps').shape[0]))
         starting_pattern = get_pattern(
-            required_snps.values)
+            required_snps_result.get('required_snps').values)
     else:
+        required_snps_result = {'required_snps': required_snps, 'snp_matrix_without_required': matrix}
         starting_pattern = np.zeros(matrix.shape[1], dtype=int)
     logger.debug("Starting Pattern: {}".format(starting_pattern))
     return {
         'pattern': starting_pattern,
-        'required_snps': required_snps}
+        'required_snps': required_snps_result.get('required_snps'),
+        'matrix': required_snps_result.get('snp_matrix_without_required')}
 
 
 def get_patterns(matrix, offset, window):

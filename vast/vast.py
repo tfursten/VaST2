@@ -163,10 +163,6 @@ def run_vast(
         logger.info("Writing resolution file to file {}".format(figure_outfile))
         draw_parallel_categories(resolution, figure_outfile, metadata)
     
-
-
-
-    
     
 
 def run_vast_resolution(vast_targets, metadata, resolution_outfile, figure_outfile):
