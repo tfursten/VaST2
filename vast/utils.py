@@ -29,11 +29,18 @@ def nasp_2_vast_format(matrix, outfile):
 
 def load_matrix(matrix):
     """
-    Read in matrix and make sure to sort positions so we can calculate
+    Read in SNP Matrix and make sure to sort positions so we can calculate
     sliding windows.
     """
     df = pd.read_csv(matrix, sep="\t", index_col=[0, 1], comment="#").sort_index()
     df.index.names = ['Genome', 'Pos']
+    return df
+
+def load_target_matrix(matrix):
+    """
+    Read in VaST Target matrix
+    """
+    df = pd.read_csv(matrix, sep="\t", index_col=[0,1,2], comment="#")
     return df
 
 
@@ -169,6 +176,15 @@ def run_get_snps_in_ranges(snp_matrix, ranges, outfile, full_matrix=False):
             (snp_matrix['Pos'] <= row['End'])])
     snps_in_range = pd.concat(snps_in_range)
     snps_in_range.to_csv(outfile, sep="\t", header=False, index=False)
+
+
+def run_matrix_position_filter(snp_matrix, positions, outfile):
+    positions = load_required_snps(positions)
+    snp_matrix = load_matrix(snp_matrix)
+    filtered = pull_required_snps_from_matrix(snp_matrix, positions).get('required_snps')
+    filtered.to_csv(outfile, sep="\t")
+
+
         
 
 def write_snps_to_fasta(snp_matrix, fasta_outfile):
@@ -177,3 +193,8 @@ def write_snps_to_fasta(snp_matrix, fasta_outfile):
             seq = "".join(snp_matrix[genome])
             out.write(
                 ">{0}\n{1}\n".format(genome, seq))
+
+
+def run_write_snps_to_fasta(vast_matrix, outfile):
+    vast_matrix = load_target_matrix(vast_matrix)
+    write_snps_to_fasta(vast_matrix, outfile)

@@ -9,10 +9,14 @@ sys.path.append(str(path_root))
 
 try:
     from vast.vast import run_vast, run_vast_resolution, run_vast_tree
-    from vast.utils import nasp_2_vast_format, run_get_snps_in_ranges
+    from vast.utils import (
+        nasp_2_vast_format, run_get_snps_in_ranges,
+        run_matrix_position_filter, run_write_snps_to_fasta)
 except ImportError:
     from vast import run_vast, run_vast_resolution, run_vast_tree
-    from utils import nasp_2_vast_format, run_get_snps_in_ranges
+    from utils import (
+        nasp_2_vast_format, run_get_snps_in_ranges,
+        run_matrix_position_filter, run_write_snps_to_fasta)
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 logger = logging.getLogger('vast')
@@ -201,6 +205,40 @@ def get_snps_in_ranges(snp_matrix, ranges, outfile, full_matrix):
     vast targets function as required or excluded snps.
     """
     run_get_snps_in_ranges(snp_matrix, ranges, outfile, full_matrix)
+
+@cli.command(context_settings=dict(show_default=True))
+@click.argument(
+    'SNP_MATRIX', 
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, allow_dash=False))
+@click.argument(
+    'POSITIONS',
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, allow_dash=False))
+@click.argument(
+    'OUTFILE',
+    type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True))
+def matrix_position_filter(snp_matrix, positions, outfile):
+    """
+    Given a position file (with columns "Genome" for the reference
+    genome name, and "Pos" for position of SNP in genome), pull only 
+    the included positions from the provided SNP_MATRIX.
+    """
+    run_matrix_position_filter(snp_matrix, positions, outfile)
+
+
+@cli.command(context_settings=dict(show_default=True))
+@click.argument(
+    'VAST_TARGET_MATRIX', 
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, allow_dash=False))
+@click.argument(
+    'OUTFILE',
+    type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True))
+def target_matrix_to_fasta(vast_matrix, outfile):
+    """
+    Convert a VaST Target Matrix (result from running vast target) into a fasta file
+    by concatenating SNPs for each genome.
+    """
+
+    run_write_snps_to_fasta(vast_matrix, outfile)
 
 if __name__ == '__main__':
     cli()
