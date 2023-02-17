@@ -45,10 +45,10 @@ def load_target_matrix(matrix):
 
 
 def load_required_snps(required_snps):
-    return pd.read_csv(required_snps, sep="\t", header=None, comment="#")
+    return pd.read_csv(required_snps, sep="\t", header=None, comment="#", index_col=[0,1])
 
 def pull_required_snps_from_matrix(matrix, required_snps):
-    idx = [(row[0], row[1]) for _, row in required_snps.iterrows()]
+    idx = required_snps.index
     idx_intersect = matrix.index.intersection(idx)
     return {
         'required_snps': matrix.loc[idx_intersect],
@@ -83,10 +83,13 @@ def get_final_snp_table(snps, selected_patterns, matrix, required_snps):
         selected_snps = []
         for snp in snps[i]:
             selected_snps.append(list(snp))
+        print(pd.MultiIndex.from_frame(pd.DataFrame(selected_snps)))
         d = pull_required_snps_from_matrix(
-                matrix, pd.DataFrame(selected_snps)).get('required_snps')
+                matrix,
+                pd.DataFrame(selected_snps).set_index([0,1])).get('required_snps')
         d['Target_ID'] = n
-        d = d.reset_index().set_index(['Genome', 'Pos', 'Target_ID'])
+        d = d.set_index('Target_ID', append=True)
+        d.index.set_names(['Genome', 'Pos', 'Target_ID'], inplace=True)
         snp_dfs.append(d)
     snp_results = pd.concat([required_snps] + snp_dfs)
     return snp_results
