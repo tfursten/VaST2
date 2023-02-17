@@ -22,7 +22,8 @@ try:
         get_final_snp_table,
         get_resolution,
         draw_resolution_ascii_graph,
-        process_metadata
+        process_metadata,
+        write_snps_to_fasta
     )
 except ImportError:
     from tree import (
@@ -38,7 +39,8 @@ except ImportError:
         get_final_snp_table,
         get_resolution,
         draw_resolution_ascii_graph,
-        process_metadata
+        process_metadata,
+        write_snps_to_fasta
     )
 
 
@@ -112,7 +114,7 @@ def optimization_loop(
 def run_vast(
     matrix, outfile, delta_cutoff, max_targets,
     window, offset, required_snps, exclude_snps,
-    drop_duplicates, metadata, tree_outfile,
+    drop_duplicates, metadata, fasta_outfile,
     figure_outfile, resolution_outfile):
     logger = logging.getLogger('vast')
     logger.info("Loading SNP matrix: {}".format(os.path.abspath(matrix)))
@@ -121,6 +123,8 @@ def run_vast(
     logger.info("Found {0} genomes and {1} snps.".format(
         snp_matrix.shape[1], snp_matrix.shape[0]))
     starting_pattern = get_starting_pattern(snp_matrix, required_snps)
+    # snp_matrix with required snps removed
+    snp_matrix = starting_pattern.get('matrix') 
     logger.info(
         "Finding patterns using a window size of {0} and an offset of {1}".format(
             window, offset
@@ -151,14 +155,20 @@ def run_vast(
     if resolution_outfile:
         logger.info("Writing resolution table to file {}".format(resolution_outfile))
         resolution.to_csv(resolution_outfile, sep="\t")
-    if tree_outfile:
-        tree = vast_target_tree(
+    if fasta_outfile:
+        print(snp_results)
+        write_snps_to_fasta(
             snp_results.set_index(
-                ['Genome', 'Pos', 'Target_ID']),
-            metadata)
-        logger.info("Writing tree to file {}".format(tree_outfile))
-        Phylo.write(tree, tree_outfile, "newick")
-        logger.info(Phylo.draw_ascii(tree))
+                ['Genome', 'Pos', 'Target_ID']), fasta_outfile)
+
+    # if tree_outfile:
+    #     tree = vast_target_tree(
+    #         snp_results.set_index(
+    #             ['Genome', 'Pos', 'Target_ID']),
+    #         metadata)
+    #     logger.info("Writing tree to file {}".format(tree_outfile))
+    #     Phylo.write(tree, tree_outfile, "newick")
+    #     logger.info(Phylo.draw_ascii(tree))
     if figure_outfile:
         logger.info("Writing resolution file to file {}".format(figure_outfile))
         draw_parallel_categories(resolution, figure_outfile, metadata)

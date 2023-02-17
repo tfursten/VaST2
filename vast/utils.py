@@ -156,10 +156,11 @@ def matrix_setup(matrix, exclude_snps, drop_duplicates):
     return snp_matrix
 
 
-def run_get_snps_in_ranges(snp_matrix, ranges, outfile):
-    ranges = pd.read_csv(ranges, sep="\t")
+def run_get_snps_in_ranges(snp_matrix, ranges, outfile, full_matrix=False):
+    ranges = pd.read_csv(ranges, sep="\t", comment="#")
     ranges.columns = ['Genome', 'Start', 'End']
-    snp_matrix = pd.read_csv(snp_matrix, sep="\t", usecols=[0,1])
+    useccols = None if full_matrix else [0,1] 
+    snp_matrix = pd.read_csv(snp_matrix, sep="\t", usecols=useccols)
     snps_in_range = []
     for n, row in ranges.iterrows():
         snps_in_range.append(snp_matrix[
@@ -170,3 +171,9 @@ def run_get_snps_in_ranges(snp_matrix, ranges, outfile):
     snps_in_range.to_csv(outfile, sep="\t", header=False, index=False)
         
 
+def write_snps_to_fasta(snp_matrix, fasta_outfile):
+    with open(fasta_outfile, 'w') as out:
+        for genome in snp_matrix:
+            seq = "".join(snp_matrix[genome])
+            out.write(
+                ">{0}\n{1}\n".format(genome, seq))

@@ -84,12 +84,12 @@ def nasp_format(matrix, outfile):
     help="Speed up processing by removing duplicate columns (genomes) from SNP matrix (keep only first occurance)."
 )
 @click.option(
-    "--tree", '-t', default=None,
+    "--fasta", '-f', default=None,
     type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True),
-    help="Write neighbor-joining tree using chosen targets to newick formated file."
+    help="Concatenate SNPs and write to fasta file."
 )
 @click.option(
-    "--figure", '-f', default=None,
+    "--figure", '-s', default=None,
     type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True),
     help="Path to save Sankey diagram of resolution for chosen targets."
 )
@@ -101,7 +101,7 @@ def nasp_format(matrix, outfile):
 def targets(
     matrix, outfile, delta, max_targets,
     window, offset, required_snps, exclude_snps,
-    drop_duplicates, metadata, tree, figure, resolution):
+    drop_duplicates, metadata, figure, fasta, resolution):
     """
     Run vast to find target regions to maximize strain resolution.\n
     VaST uses a greedy optimization algorithm to find a minimal number of target regions
@@ -117,7 +117,7 @@ def targets(
     run_vast(
         matrix, outfile, delta, max_targets,
         window, offset, required_snps, exclude_snps,
-        drop_duplicates, metadata, tree, figure, resolution)
+        drop_duplicates, metadata, fasta, figure, resolution)
 
 
 @cli.command(context_settings=dict(show_default=True))
@@ -187,7 +187,12 @@ def tree(vast_target_matrix, metadata, tree):
 @click.argument(
     'OUTFILE',
     type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True))
-def get_snps_in_ranges(snp_matrix, ranges, outfile):
+@click.option(
+    "--full-matrix", '-f',
+    default=False, is_flag=True,
+    help="By default, only SNP positions is output, using the full-matrix flag will return all SNP data in the range"
+)
+def get_snps_in_ranges(snp_matrix, ranges, outfile, full_matrix):
     """
     Given a RANGES tab separated file (with columns "Genome" for the reference
     genome name, "Start", and "End" indicating the start and end of the range),
@@ -195,7 +200,7 @@ def get_snps_in_ranges(snp_matrix, ranges, outfile):
     each range (inclusive). The output file is provided in a format that can be passed to the
     vast targets function as required or excluded snps.
     """
-    run_get_snps_in_ranges(snp_matrix, ranges, outfile)
+    run_get_snps_in_ranges(snp_matrix, ranges, outfile, full_matrix)
 
 if __name__ == '__main__':
     cli()
