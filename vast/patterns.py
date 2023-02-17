@@ -79,6 +79,13 @@ def get_starting_pattern(matrix, required_snps):
             matrix,
             load_required_snps(required_snps))
         logger.info("Found {} required SNPs".format(required_snps_result.get('required_snps').shape[0]))
+        if len(required_snps_result.get('missing')):
+            logger.info(
+                "Missing {} required SNPs, not found in matrix (DEBUG to list)".format(
+                    len(required_snps_result.get('missing'))))
+            logger.debug(
+                "Missing required SNPS: {}".format("\n".join(required_snps_result.get('missing')))
+            )
         starting_pattern = get_pattern(
             required_snps_result.get('required_snps').values)
     else:

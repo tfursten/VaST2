@@ -232,13 +232,13 @@ def matrix_position_filter(snp_matrix, positions, outfile):
 @click.argument(
     'OUTFILE',
     type=click.Path(exists=False, file_okay=True, dir_okay=False, writable=True))
-def target_matrix_to_fasta(vast_matrix, outfile):
+def target_matrix_to_fasta(vast_target_matrix, outfile):
     """
     Convert a VaST Target Matrix (result from running vast target) into a fasta file
     by concatenating SNPs for each genome.
     """
 
-    run_write_snps_to_fasta(vast_matrix, outfile)
+    run_write_snps_to_fasta(vast_target_matrix, outfile)
 
 if __name__ == '__main__':
     cli()

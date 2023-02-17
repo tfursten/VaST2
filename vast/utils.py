@@ -49,9 +49,11 @@ def load_required_snps(required_snps):
 
 def pull_required_snps_from_matrix(matrix, required_snps):
     idx = [(row[0], row[1]) for _, row in required_snps.iterrows()]
+    idx_intersect = matrix.index.intersection(idx)
     return {
-        'required_snps': matrix.loc[matrix.index.intersection(idx)],
-        'snp_matrix_without_required': matrix.drop(matrix.index.intersection(idx))
+        'required_snps': matrix.loc[idx_intersect],
+        'snp_matrix_without_required': matrix.drop(idx_intersect),
+        'missing': idx.difference(idx_intersect)
         }
 
 def filter_exluded_snps(snps, exclude_snps):
