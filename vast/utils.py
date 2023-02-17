@@ -45,12 +45,12 @@ def load_target_matrix(matrix):
 
 
 def load_required_snps(required_snps):
-    return pd.read_csv(required_snps, sep="\t", header=None)
+    return pd.read_csv(required_snps, sep="\t", header=None, comment="#")
 
 def pull_required_snps_from_matrix(matrix, required_snps):
     idx = [(row[0], row[1]) for _, row in required_snps.iterrows()]
     return {
-        'required_snps': matrix.loc[idx],
+        'required_snps': matrix.loc[matrix.index.intersection(idx)],
         'snp_matrix_without_required': matrix.drop(idx)
         }
 
