@@ -83,7 +83,6 @@ def get_final_snp_table(snps, selected_patterns, matrix, required_snps):
         selected_snps = []
         for snp in snps[i]:
             selected_snps.append(list(snp))
-        print(pd.MultiIndex.from_frame(pd.DataFrame(selected_snps)))
         d = pull_required_snps_from_matrix(
                 matrix,
                 pd.DataFrame(selected_snps).set_index([0,1])).get('required_snps')
