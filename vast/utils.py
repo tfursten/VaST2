@@ -63,7 +63,8 @@ def filter_exluded_snps(snps, exclude_snps):
     exclude_snps_df = pd.read_csv(
         exclude_snps, sep='\t', index_col=[0,1], header=None, comment="#")
     pre_filter = snps.shape[0]
-    snps = snps.loc[~snps.index.isin(exclude_snps.index)]
+
+    snps = snps.loc[~snps.index.isin(snps.index.intersection(exclude_snps.index))]
     post_filter = snps.shape[0]
     n_exclude = exclude_snps_df.shape[0]
     logging.info(
