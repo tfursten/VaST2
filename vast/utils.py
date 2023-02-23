@@ -40,7 +40,9 @@ def load_target_matrix(matrix):
     """
     Read in VaST Target matrix
     """
-    df = pd.read_csv(matrix, sep="\t", index_col=[0,1,2], comment="#")
+    df = pd.read_csv(matrix, sep="\t", index_col=['Genome', 'Pos'], comment="#")
+    if 'Target_ID' in df.columns.values:
+        df = df.set_index('Target_ID', append=True) 
     return df
 
 

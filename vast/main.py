@@ -240,6 +240,9 @@ def target_matrix_to_fasta(vast_target_matrix, outfile):
 
     run_write_snps_to_fasta(vast_target_matrix, outfile)
 
+
+
+
 if __name__ == '__main__':
     cli()
 
