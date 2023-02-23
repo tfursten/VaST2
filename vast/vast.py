@@ -156,7 +156,6 @@ def run_vast(
         logger.info("Writing resolution table to file {}".format(resolution_outfile))
         resolution.to_csv(resolution_outfile, sep="\t")
     if fasta_outfile:
-        print(snp_results)
         write_snps_to_fasta(
             snp_results.set_index(
                 ['Genome', 'Pos', 'Target_ID']), fasta_outfile)
