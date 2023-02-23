@@ -64,7 +64,7 @@ def filter_exluded_snps(snps, exclude_snps):
         exclude_snps, sep='\t', index_col=[0,1], header=None, comment="#")
     pre_filter = snps.shape[0]
 
-    snps = snps.loc[~snps.index.isin(snps.index.intersection(exclude_snps.index))]
+    snps = snps.loc[~snps.index.isin(snps.index.intersection(exclude_snps_df.index))]
     post_filter = snps.shape[0]
     n_exclude = exclude_snps_df.shape[0]
     logging.info(
@@ -144,7 +144,7 @@ def process_metadata(matrix, metadata=None):
     # put metadata in same order as snp matrix
     metadata = metadata.loc[genomes]
     # Return unique ids for each category
-    metadata_ids = np.unique(metadata[1], return_inverse=True)
+    metadata_ids = np.unique(metadata[1].fillna(""), return_inverse=True)
     return {
         'values': pd.Series(metadata_ids[1], index=genomes),
         'names': pd.Series(metadata_ids[0])
